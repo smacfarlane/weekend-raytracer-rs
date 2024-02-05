@@ -30,15 +30,8 @@ fn main() {
             let color = ray_color(&ray);
 
             let pixel = imgbuf.get_pixel_mut(x, y);
-            if y == 0 && x == 0 {
-                dbg!(color);
-            }
 
-            if y < 10 {
-                *pixel = image::Rgb([255, 0, 0]);
-            } else {
-                *pixel = image::Rgb([color.r(), color.g(), color.b()]);
-            }
+            *pixel = image::Rgb([color.r(), color.g(), color.b()]);
         }
     }
 

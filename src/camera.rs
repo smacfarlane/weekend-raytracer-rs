@@ -22,7 +22,7 @@ impl Camera {
         let viewport_width = viewport_height * (width as f64 / height as f64);
         let camera_center = Vec3::new();
         let viewport_u = Vec3::from(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::from(0.0, viewport_height, 0.0);
+        let viewport_v = Vec3::from(0.0, -viewport_height, 0.0);
         let pixel_delta_u = viewport_u.div(width as f64);
         let pixel_delta_v = viewport_v.div(height as f64);
 
@@ -51,7 +51,7 @@ impl Camera {
         &self.camera_center
     }
 
-    pub fn ray_direction(&self, y: u32, x: u32) -> Vec3 {
+    pub fn ray_direction(&self, x: u32, y: u32) -> Vec3 {
         let pixel_center =
             self.pixel00_loc + self.pixel_delta_u.mul(x as f64) + self.pixel_delta_v.mul(y as f64);
         pixel_center - self.camera_center
