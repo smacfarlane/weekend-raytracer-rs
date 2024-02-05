@@ -1,16 +1,23 @@
 use image::ImageBuffer;
-use vec3::Color;
+use sphere::Sphere;
+use vec3::{Color, Vec3};
 
 use crate::{camera::Camera, ray::Ray};
 
 mod camera;
 mod ray;
+mod sphere;
 mod vec3;
 
 fn ray_color(ray: &Ray) -> Color {
-    let unit_direction = ray.direction().unit();
-    let a = 0.5 * (unit_direction.y() + 1.0);
-    Color::from(1.0, 1.0, 1.0).mul(1.0 - a) + Color::from(0.5, 0.7, 1.0).mul(a)
+    let sphere = Sphere::new(Vec3::from(0.0, 0.0, -1.0), 0.5);
+    if sphere.intersects(ray) {
+        Color::from(1.0, 0.0, 0.0)
+    } else {
+        let unit_direction = ray.direction().unit();
+        let a = 0.5 * (unit_direction.y() + 1.0);
+        Color::from(1.0, 1.0, 1.0).mul(1.0 - a) + Color::from(0.5, 0.7, 1.0).mul(a)
+    }
 }
 
 fn main() {
