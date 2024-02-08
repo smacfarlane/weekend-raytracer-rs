@@ -1,4 +1,4 @@
-use crate::{ray::Ray, vec3::Vec3};
+use crate::{interval::Interval, ray::Ray, vec3::Vec3};
 use std::ops::{Deref, DerefMut};
 
 #[derive(Clone)]
@@ -27,7 +27,7 @@ impl HitRecord {
 }
 
 pub trait Hittable {
-    fn hit(&self, ray: &Ray, ray_tmin: f64, ray_tmax: f64) -> Option<HitRecord>;
+    fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord>;
 }
 
 pub struct HitList<T: Hittable>(Vec<T>);
@@ -52,15 +52,15 @@ impl<T: Hittable> DerefMut for HitList<T> {
     }
 }
 impl<T: Hittable> Hittable for HitList<T> {
-    fn hit(&self, ray: &Ray, ray_tmin: f64, ray_tmax: f64) -> Option<HitRecord> {
-        let mut closest = ray_tmax;
+    fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord> {
+        let mut ray_t: Interval = ray_t.to_owned();
 
         let mut record = None;
 
         for object in self.0.iter() {
-            if let Some(object) = object.hit(ray, ray_tmin, closest) {
+            if let Some(object) = object.hit(ray, &ray_t) {
                 record = Some(object.clone());
-                closest = object.t;
+                ray_t.max = object.t;
             }
         }
 

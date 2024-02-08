@@ -1,5 +1,6 @@
 use hit::Hittable;
 use image::ImageBuffer;
+use interval::Interval;
 use sphere::Sphere;
 use vec3::{Color, Vec3};
 
@@ -7,12 +8,14 @@ use crate::{camera::Camera, hit::HitList, ray::Ray};
 
 mod camera;
 mod hit;
+mod interval;
 mod ray;
 mod sphere;
 mod vec3;
 
 fn ray_color(ray: &Ray, world: &impl Hittable) -> Color {
-    if let Some(object) = world.hit(ray, 0.0, f64::INFINITY) {
+    let interval = Interval::new(0.0, f64::INFINITY);
+    if let Some(object) = world.hit(ray, &interval) {
         (object.normal + Color::from(1.0, 1.0, 1.0)).mul(0.5)
     } else {
         let unit_direction = ray.direction().unit();
