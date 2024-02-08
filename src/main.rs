@@ -1,18 +1,19 @@
+use hit::Hittable;
 use image::ImageBuffer;
 use sphere::Sphere;
 use vec3::{Color, Vec3};
 
-use crate::{camera::Camera, ray::Ray};
+use crate::{camera::Camera, hit::HitList, ray::Ray};
 
 mod camera;
+mod hit;
 mod ray;
 mod sphere;
 mod vec3;
 
-fn ray_color(ray: &Ray) -> Color {
-    let sphere = Sphere::new(Vec3::from(0.0, 0.0, -1.0), 0.5);
-    if sphere.intersects(ray) {
-        Color::from(1.0, 0.0, 0.0)
+fn ray_color(ray: &Ray, world: &impl Hittable) -> Color {
+    if let Some(object) = world.hit(ray, 0.0, f64::INFINITY) {
+        (object.normal + Color::from(1.0, 1.0, 1.0)).mul(0.5)
     } else {
         let unit_direction = ray.direction().unit();
         let a = 0.5 * (unit_direction.y() + 1.0);
@@ -26,6 +27,12 @@ fn main() {
     let height = (width as f64 / aspect_ratio) as u32;
     assert!(height >= 1);
 
+    // World
+
+    let mut world = HitList::new();
+    world.push(Sphere::new(Vec3::from(0.0, 0.0, -1.0), 0.5));
+    world.push(Sphere::new(Vec3::from(0.0, -100.5, -1.0), 100.0));
+
     // TODO: We calculate image_height seperate from Camera, yet they share aspect_ratio
     let camera = Camera::new(width, height);
 
@@ -34,7 +41,7 @@ fn main() {
     for y in 0..height {
         for x in 0..width {
             let ray = Ray::from(*camera.camera_center(), camera.ray_direction(x, y));
-            let color = ray_color(&ray);
+            let color = ray_color(&ray, &world);
 
             let pixel = imgbuf.get_pixel_mut(x, y);
 
