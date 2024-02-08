@@ -1,24 +1,21 @@
 use image::ImageBuffer;
+use rand::{thread_rng, Rng};
 
 use crate::hit::Hittable;
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::vec3::{Color, Vec3};
+use crate::vec3::{self, Color, Vec3};
 
 pub struct Camera {
     image_width: u32,
     image_height: u32,
     aspect_ratio: f64,
-    // focal_length: f64,
-    // viewport_height: f64,
-    // viewport_width: f64,
     camera_center: Vec3,
-    // viewport_u: Vec3,
-    // viewport_v: Vec3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
-    // viewport_upper_left: Vec3,
     pixel00_loc: Vec3,
+    samples: u32,
+    max_depth: u32,
 }
 
 impl Camera {
@@ -30,8 +27,14 @@ impl Camera {
         let mut imgbuf = ImageBuffer::new(self.image_width, self.image_height);
         for y in 0..self.image_height {
             for x in 0..self.image_width {
-                let ray = Ray::from(self.camera_center, self.ray_direction(x, y));
-                let color = Self::ray_color(&ray, world);
+                let mut color = Color::from(0.0, 0.0, 0.0);
+                for sample in 0..self.samples {
+                    let ray = self.get_ray(x, y);
+                    color += Self::ray_color(&ray, self.max_depth, world);
+                }
+
+                color.scale(1.0 / self.samples as f64);
+                color.to_gamma_space();
 
                 let pixel = imgbuf.get_pixel_mut(x, y);
 
@@ -77,6 +80,8 @@ impl Camera {
             pixel_delta_u,
             pixel_delta_v,
             pixel00_loc,
+            samples: 25,
+            max_depth: 10,
         }
     }
 
@@ -90,17 +95,44 @@ impl Camera {
         pixel_center - self.camera_center
     }
 
-    fn ray_color(ray: &Ray, world: &impl Hittable) -> Color {
-        let interval = Interval::new(0.0, f64::INFINITY);
+    fn ray_color(ray: &Ray, depth: u32, world: &impl Hittable) -> Color {
+        let interval = Interval::new(0.001, f64::INFINITY);
+
+        if depth == 0 {
+            return Color::from(0.0, 0.0, 0.0);
+        }
+
         if let Some(object) = world.hit(ray, &interval) {
-            (object.normal + Color::from(1.0, 1.0, 1.0)).mul(0.5)
+            let direction = object.normal + vec3::random_unit_vector();
+
+            Self::ray_color(&Ray::from(object.p, direction), depth - 1, world).mul(0.5)
         } else {
             let unit_direction = ray.direction().unit();
             let a = 0.5 * (unit_direction.y() + 1.0);
             Color::from(1.0, 1.0, 1.0).mul(1.0 - a) + Color::from(0.5, 0.7, 1.0).mul(a)
         }
     }
+
+    fn get_ray(&self, i: u32, j: u32) -> Ray {
+        let pixel_center =
+            self.pixel00_loc + self.pixel_delta_u.mul(i as f64) + self.pixel_delta_v.mul(j as f64);
+        let pixel_sample = pixel_center + self.pixel_sample_square();
+
+        let origin = self.camera_center;
+        let direction = pixel_sample - origin;
+
+        Ray::from(origin, direction)
+    }
+
+    fn pixel_sample_square(&self) -> Vec3 {
+        let mut rng = thread_rng();
+        let px = rng.gen_range(-0.5..0.5);
+        let py = rng.gen_range(-0.5..0.5);
+
+        self.pixel_delta_u.mul(px) + self.pixel_delta_v.mul(py)
+    }
 }
+
 impl Default for Camera {
     fn default() -> Self {
         Self::initialize(100, 1.0)

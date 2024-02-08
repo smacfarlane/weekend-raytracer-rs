@@ -3,7 +3,7 @@ use std::ops::{Deref, DerefMut};
 
 #[derive(Clone)]
 pub struct HitRecord {
-    p: Vec3,
+    pub p: Vec3,
     pub normal: Vec3,
     pub t: f64,
     front_face: bool,

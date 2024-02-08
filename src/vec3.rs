@@ -1,3 +1,4 @@
+use rand::{thread_rng, Rng};
 use std::ops::{Add, AddAssign, Deref, DerefMut, Div, Mul, MulAssign, Neg, Sub};
 
 #[derive(Debug, Copy, Clone)]
@@ -17,6 +18,14 @@ impl Color {
 
     pub fn b(&self) -> u8 {
         (255.99 * self[2]) as u8
+    }
+
+    pub fn scale(&mut self, scale: f64) {
+        self.0 = [self.0[0] * scale, self.0[1] * scale, self.0[2] * scale]
+    }
+
+    pub fn to_gamma_space(&mut self) {
+        self.0 = [self.0[0].sqrt(), self.0[1].sqrt(), self.0[2].sqrt()]
     }
 }
 
@@ -93,6 +102,18 @@ impl Vec3 {
     pub fn unit(&self) -> Vec3 {
         self.div(self.length())
     }
+
+    pub fn random() -> Vec3 {
+        Self::random_constrained(0.0, 1.0)
+    }
+
+    pub fn random_constrained(min: f64, max: f64) -> Vec3 {
+        let mut rng = thread_rng();
+        let x = rng.gen_range(min..max);
+        let y = rng.gen_range(min..max);
+        let z = rng.gen_range(min..max);
+        Vec3([x, y, z])
+    }
 }
 
 impl Neg for Vec3 {
@@ -148,5 +169,27 @@ impl MulAssign for Vec3 {
         self[0] = self[0] * rhs[0];
         self[1] = self[1] * rhs[1];
         self[2] = self[2] * rhs[2];
+    }
+}
+
+fn random_in_unit_sphere() -> Vec3 {
+    loop {
+        let p = Vec3::random_constrained(-1.0, 1.0);
+        if p.length_squared() < 1.0 {
+            return p;
+        }
+    }
+}
+
+pub fn random_unit_vector() -> Vec3 {
+    random_in_unit_sphere().unit()
+}
+
+pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+    let v = random_unit_vector();
+    if v.dot(normal) > 0.0 {
+        v
+    } else {
+        -v
     }
 }
