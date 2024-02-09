@@ -211,3 +211,12 @@ pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
 pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
     v - &n.mul(v.dot(&n) * 2.0)
 }
+
+pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f64) -> Vec3 {
+    let cos_theta = -uv.dot(n).min(1.0);
+    let r_out_perp: Vec3 = n.mul(cos_theta) + *uv;
+    let r_out_perp: Vec3 = Vec3::mul(&r_out_perp, etai_over_etat);
+    let r_out_parallel = n.mul(-(1.0 - r_out_perp.length_squared()).abs().sqrt());
+
+    r_out_perp + r_out_parallel
+}
