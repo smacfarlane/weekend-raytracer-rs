@@ -1,16 +1,21 @@
-use crate::{interval::Interval, ray::Ray, vec3::Vec3};
+use crate::{interval::Interval, material::Material, ray::Ray, vec3::Vec3};
 use std::ops::{Deref, DerefMut};
+
+pub trait Hittable {
+    fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord>;
+}
 
 #[derive(Clone)]
 pub struct HitRecord {
     pub p: Vec3,
     pub normal: Vec3,
+    pub mat: Material,
     pub t: f64,
     front_face: bool,
 }
 
 impl HitRecord {
-    pub fn new(ray: &Ray, p: Vec3, normal: Vec3, t: f64) -> Self {
+    pub fn new(ray: &Ray, p: Vec3, normal: Vec3, t: f64, mat: Material) -> Self {
         let front_face = ray.direction().dot(&normal) < 0.0;
         let mut normal = normal;
         if !front_face {
@@ -20,14 +25,11 @@ impl HitRecord {
         Self {
             p,
             normal,
+            mat,
             t,
             front_face,
         }
     }
-}
-
-pub trait Hittable {
-    fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord>;
 }
 
 pub struct HitList<T: Hittable>(Vec<T>);
@@ -51,6 +53,7 @@ impl<T: Hittable> DerefMut for HitList<T> {
         &mut self.0
     }
 }
+
 impl<T: Hittable> Hittable for HitList<T> {
     fn hit(&self, ray: &Ray, ray_t: &Interval) -> Option<HitRecord> {
         let mut ray_t: Interval = ray_t.to_owned();

@@ -8,6 +8,14 @@ pub type Point3 = Vec3;
 pub type Color = Vec3;
 
 impl Color {
+    pub fn black() -> Color {
+        Color::from(0.0, 0.0, 0.0)
+    }
+
+    pub fn white() -> Color {
+        Color::from(1.0, 1.0, 1.0)
+    }
+
     pub fn r(&self) -> u8 {
         (255.99 * self[0]) as u8
     }
@@ -114,6 +122,12 @@ impl Vec3 {
         let z = rng.gen_range(min..max);
         Vec3([x, y, z])
     }
+
+    pub fn near_zero(&self) -> bool {
+        static S: f64 = 1e-8;
+
+        (self[0].abs() < S) && (self[1].abs() < S) && (self[2].abs() < S)
+    }
 }
 
 impl Neg for Vec3 {
@@ -192,4 +206,8 @@ pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
     } else {
         -v
     }
+}
+
+pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+    v - &n.mul(v.dot(&n) * 2.0)
 }

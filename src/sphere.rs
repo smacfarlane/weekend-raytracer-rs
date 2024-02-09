@@ -1,6 +1,7 @@
 use crate::{
     hit::{HitRecord, Hittable},
     interval::Interval,
+    material::Material,
     ray::Ray,
     vec3::Vec3,
 };
@@ -8,11 +9,16 @@ use crate::{
 pub struct Sphere {
     center: Vec3,
     radius: f64,
+    material: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64) -> Self {
-        Self { center, radius }
+    pub fn new(center: Vec3, radius: f64, material: Material) -> Self {
+        Self {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
@@ -40,6 +46,6 @@ impl Hittable for Sphere {
         let p = ray.at(root);
         let normal = (p - self.center).div(self.radius);
 
-        Some(HitRecord::new(ray, p, normal, root))
+        Some(HitRecord::new(ray, p, normal, root, self.material.clone()))
     }
 }

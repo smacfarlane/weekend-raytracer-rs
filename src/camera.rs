@@ -103,13 +103,19 @@ impl Camera {
         }
 
         if let Some(object) = world.hit(ray, &interval) {
-            let direction = object.normal + vec3::random_unit_vector();
+            // let direction = object.normal + vec3::random_unit_vector();
+            // Self::ray_color(&Ray::from(object.p, direction), depth - 1, world).mul(0.5)
 
-            Self::ray_color(&Ray::from(object.p, direction), depth - 1, world).mul(0.5)
+            match object.mat.scatter(ray, &object) {
+                Some((attenuation, scattered)) => {
+                    attenuation * Self::ray_color(&scattered, depth - 1, world)
+                }
+                None => Color::black(),
+            }
         } else {
             let unit_direction = ray.direction().unit();
             let a = 0.5 * (unit_direction.y() + 1.0);
-            Color::from(1.0, 1.0, 1.0).mul(1.0 - a) + Color::from(0.5, 0.7, 1.0).mul(a)
+            Color::white().mul(1.0 - a) + Color::from(0.5, 0.7, 1.0).mul(a)
         }
     }
 
