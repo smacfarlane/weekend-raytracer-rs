@@ -20,10 +20,6 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(width: u32, aspect_ratio: f64) -> Self {
-        Self::initialize(width, aspect_ratio)
-    }
-
     pub fn render(&self, world: &impl Hittable) -> ImageBuffer<image::Rgb<u8>, Vec<u8>> {
         let mut imgbuf = ImageBuffer::new(self.image_width, self.image_height);
         for y in 0..self.image_height {
@@ -46,46 +42,6 @@ impl Camera {
         imgbuf
     }
 
-    fn initialize(width: u32, aspect_ratio: f64) -> Self {
-        let camera_center = Vec3::new();
-        let mut height = (width as f64 / aspect_ratio) as u32;
-        if height < 1 {
-            height = 1
-        }
-
-        // Viewport Dimensions
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
-        let viewport_width = viewport_height * (width as f64 / height as f64);
-
-        // Calculate vectors across horizontal and down vertical viewport edges
-        let viewport_u = Vec3::from(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::from(0.0, -viewport_height, 0.0);
-
-        // Calculate horizontal and vertical detla vectors from pixel to pixel
-        let pixel_delta_u = viewport_u.div(width as f64);
-        let pixel_delta_v = viewport_v.div(height as f64);
-
-        // Calculate location of upper left pixel
-        let viewport_upper_left = camera_center
-            - Vec3::from(0.0, 0.0, focal_length)
-            - viewport_u.div(2.0)
-            - viewport_v.div(2.0);
-        let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v).mul(0.5);
-
-        Self {
-            image_width: width,
-            image_height: height,
-            aspect_ratio,
-            camera_center,
-            pixel_delta_u,
-            pixel_delta_v,
-            pixel00_loc,
-            samples: 25,
-            max_depth: 10,
-        }
-    }
-
     fn ray_color(ray: &Ray, depth: u32, world: &impl Hittable) -> Color {
         let interval = Interval::new(0.001, f64::INFINITY);
 
@@ -94,9 +50,6 @@ impl Camera {
         }
 
         if let Some(object) = world.hit(ray, &interval) {
-            // let direction = object.normal + vec3::random_unit_vector();
-            // Self::ray_color(&Ray::from(object.p, direction), depth - 1, world).mul(0.5)
-
             match object.mat.scatter(ray, &object) {
                 Some((attenuation, scattered)) => {
                     attenuation * Self::ray_color(&scattered, depth - 1, world)
@@ -130,8 +83,101 @@ impl Camera {
     }
 }
 
-impl Default for Camera {
-    fn default() -> Self {
-        Self::initialize(100, 1.0)
+#[allow(dead_code)]
+pub struct CameraBuilder {
+    image_width: u32,
+    aspect_ratio: f64,
+    samples: u32,
+    max_depth: u32,
+    v_fov: f64,
+    look_at: Vec3,
+    look_from: Vec3,
+    v_up: Vec3,
+}
+
+#[allow(dead_code)]
+impl CameraBuilder {
+    pub fn new() -> CameraBuilder {
+        CameraBuilder {
+            image_width: 400,
+            aspect_ratio: 16.0 / 9.0,
+            samples: 100,
+            max_depth: 50,
+            v_fov: 90.0,
+            look_at: Vec3::from(0.0, 0.0, 0.0),
+            look_from: Vec3::from(0.0, 0.0, -1.0),
+            v_up: Vec3::from(0.0, 1.0, 0.0),
+        }
+    }
+
+    pub fn image_width(&mut self, image_width: u32) {
+        self.image_width = image_width;
+    }
+    pub fn aspect_ratio(&mut self, aspect_ratio: f64) {
+        self.aspect_ratio = aspect_ratio;
+    }
+    pub fn samples(&mut self, samples: u32) {
+        self.samples = samples;
+    }
+    pub fn max_depth(&mut self, max_depth: u32) {
+        self.max_depth = max_depth;
+    }
+    pub fn v_fov(&mut self, v_fov: f64) {
+        self.v_fov = v_fov;
+    }
+    pub fn look_at(&mut self, look_at: Vec3) {
+        self.look_at = look_at;
+    }
+    pub fn look_from(&mut self, look_from: Vec3) {
+        self.look_from = look_from;
+    }
+    pub fn v_up(&mut self, v_up: Vec3) {
+        self.v_up = v_up;
+    }
+
+    pub fn build(&self) -> Camera {
+        self.into()
+    }
+}
+
+impl From<&CameraBuilder> for Camera {
+    fn from(input: &CameraBuilder) -> Self {
+        let camera_center = Vec3::new();
+        let mut height = (input.image_width as f64 / input.aspect_ratio) as u32;
+        if height < 1 {
+            height = 1
+        }
+
+        // Viewport Dimensions
+        let focal_length = 1.0;
+        let viewport_height = 2.0;
+        let viewport_width = viewport_height * (input.image_width as f64 / height as f64);
+
+        // Calculate vectors across horizontal and down vertical viewport edges
+        let viewport_u = Vec3::from(viewport_width, 0.0, 0.0);
+        let viewport_v = Vec3::from(0.0, -viewport_height, 0.0);
+
+        // Calculate horizontal and vertical detla vectors from pixel to pixel
+        let pixel_delta_u = viewport_u.div(input.image_width as f64);
+        let pixel_delta_v = viewport_v.div(height as f64);
+
+        // Calculate location of upper left pixel
+        let viewport_upper_left = camera_center
+            - Vec3::from(0.0, 0.0, focal_length)
+            - viewport_u.div(2.0)
+            - viewport_v.div(2.0);
+        let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v).mul(0.5);
+
+        Self {
+            image_width: input.image_width,
+            image_height: height,
+            aspect_ratio: input.aspect_ratio,
+            camera_center,
+            pixel_delta_u,
+            pixel_delta_v,
+            pixel00_loc,
+            samples: input.samples,
+            max_depth: input.max_depth,
+        }
     }
 }
