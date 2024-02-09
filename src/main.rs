@@ -26,10 +26,11 @@ fn main() {
     world.push(Sphere::new(Vec3::from(-1.0, 0.0, -1.0), -0.4, left));
     world.push(Sphere::new(Vec3::from(1.0, 0.0, -1.0), 0.5, right));
 
-    // let camera = Camera::new(800, 16.0 / 9.0);
-
     let mut camera = CameraBuilder::new();
     camera.image_width(800);
+    camera.look_at(Vec3::from(0.0, 0.0, -1.0));
+    camera.look_from(Vec3::from(-2.0, 2.0, 1.0));
+    camera.v_fov(20.0);
     camera.samples(25);
     camera.max_depth(10);
     let camera = camera.build();

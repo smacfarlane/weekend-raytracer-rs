@@ -17,6 +17,12 @@ pub struct Camera {
     pixel00_loc: Vec3,
     samples: u32,
     max_depth: u32,
+    look_from: Vec3,
+    look_at: Vec3,
+    v_up: Vec3,
+    u: Vec3,
+    v: Vec3,
+    w: Vec3,
 }
 
 impl Camera {
@@ -104,8 +110,8 @@ impl CameraBuilder {
             samples: 100,
             max_depth: 50,
             v_fov: 90.0,
-            look_at: Vec3::from(0.0, 0.0, 0.0),
             look_from: Vec3::from(0.0, 0.0, -1.0),
+            look_at: Vec3::from(0.0, 0.0, 0.0),
             v_up: Vec3::from(0.0, 1.0, 0.0),
         }
     }
@@ -142,30 +148,36 @@ impl CameraBuilder {
 
 impl From<&CameraBuilder> for Camera {
     fn from(input: &CameraBuilder) -> Self {
-        let camera_center = Vec3::new();
         let mut height = (input.image_width as f64 / input.aspect_ratio) as u32;
         if height < 1 {
             height = 1
         }
 
+        let camera_center = input.look_from;
+
         // Viewport Dimensions
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let focal_length = (input.look_from - input.look_at).length();
+        let theta = input.v_fov.to_radians();
+        let h = (theta / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = viewport_height * (input.image_width as f64 / height as f64);
 
+        // Calculate the u, v, w unit basis vectors for the camera coordinate frame
+        let w = (input.look_from - input.look_at).unit();
+        let u = (input.v_up.cross(&w)).unit();
+        let v = w.cross(&u);
+
         // Calculate vectors across horizontal and down vertical viewport edges
-        let viewport_u = Vec3::from(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::from(0.0, -viewport_height, 0.0);
+        let viewport_u = u.mul(viewport_width);
+        let viewport_v = -v.mul(viewport_height);
 
         // Calculate horizontal and vertical detla vectors from pixel to pixel
         let pixel_delta_u = viewport_u.div(input.image_width as f64);
         let pixel_delta_v = viewport_v.div(height as f64);
 
         // Calculate location of upper left pixel
-        let viewport_upper_left = camera_center
-            - Vec3::from(0.0, 0.0, focal_length)
-            - viewport_u.div(2.0)
-            - viewport_v.div(2.0);
+        let viewport_upper_left =
+            camera_center - w.mul(focal_length) - viewport_u.div(2.0) - viewport_v.div(2.0);
         let pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v).mul(0.5);
 
         Self {
@@ -178,6 +190,12 @@ impl From<&CameraBuilder> for Camera {
             pixel00_loc,
             samples: input.samples,
             max_depth: input.max_depth,
+            look_from: input.look_from,
+            look_at: input.look_at,
+            v_up: input.v_up,
+            u,
+            v,
+            w,
         }
     }
 }
