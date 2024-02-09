@@ -4,7 +4,6 @@ use std::ops::{Add, AddAssign, Deref, DerefMut, Div, Mul, MulAssign, Neg, Sub};
 #[derive(Debug, Copy, Clone)]
 pub struct Vec3([f64; 3]);
 
-pub type Point3 = Vec3;
 pub type Color = Vec3;
 
 impl Color {
@@ -199,14 +198,15 @@ pub fn random_unit_vector() -> Vec3 {
     random_in_unit_sphere().unit()
 }
 
-pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
-    let v = random_unit_vector();
-    if v.dot(normal) > 0.0 {
-        v
-    } else {
-        -v
-    }
-}
+// TODO: REmove or use
+// pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+//     let v = random_unit_vector();
+//     if v.dot(normal) > 0.0 {
+//         v
+//     } else {
+//         -v
+//     }
+// }
 
 pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
     v - &n.mul(v.dot(&n) * 2.0)

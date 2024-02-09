@@ -4,8 +4,9 @@ use rand::{thread_rng, Rng};
 use crate::hit::Hittable;
 use crate::interval::Interval;
 use crate::ray::Ray;
-use crate::vec3::{self, Color, Vec3};
+use crate::vec3::{Color, Vec3};
 
+#[allow(dead_code)]
 pub struct Camera {
     image_width: u32,
     image_height: u32,
@@ -28,7 +29,7 @@ impl Camera {
         for y in 0..self.image_height {
             for x in 0..self.image_width {
                 let mut color = Color::from(0.0, 0.0, 0.0);
-                for sample in 0..self.samples {
+                for _ in 0..self.samples {
                     let ray = self.get_ray(x, y);
                     color += Self::ray_color(&ray, self.max_depth, world);
                 }
@@ -83,16 +84,6 @@ impl Camera {
             samples: 25,
             max_depth: 10,
         }
-    }
-
-    pub fn camera_center(&self) -> &Vec3 {
-        &self.camera_center
-    }
-
-    pub fn ray_direction(&self, x: u32, y: u32) -> Vec3 {
-        let pixel_center =
-            self.pixel00_loc + self.pixel_delta_u.mul(x as f64) + self.pixel_delta_v.mul(y as f64);
-        pixel_center - self.camera_center
     }
 
     fn ray_color(ray: &Ray, depth: u32, world: &impl Hittable) -> Color {

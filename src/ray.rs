@@ -6,13 +6,6 @@ pub struct Ray {
 }
 
 impl Ray {
-    pub fn new() -> Self {
-        Self {
-            origin: Vec3::new(),
-            direction: Vec3::new(),
-        }
-    }
-
     pub fn from(origin: Vec3, direction: Vec3) -> Self {
         Self { origin, direction }
     }

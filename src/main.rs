@@ -1,10 +1,7 @@
-use hit::Hittable;
-use image::ImageBuffer;
-use interval::Interval;
 use sphere::Sphere;
 use vec3::{Color, Vec3};
 
-use crate::{camera::Camera, hit::HitList, material::Material, ray::Ray};
+use crate::{camera::Camera, hit::HitList, material::Material};
 
 mod camera;
 mod hit;
