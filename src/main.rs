@@ -18,8 +18,8 @@ fn main() {
     // Materials
     let ground = Material::Lambertian(Color::from(0.8, 0.8, 0.0));
     let center = Material::Lambertian(Color::from(0.7, 0.3, 0.3));
-    let left = Material::Metal(Color::from(0.8, 0.8, 0.8));
-    let right = Material::Metal(Color::from(0.8, 0.6, 0.2));
+    let left = Material::Metal(Color::from(0.8, 0.8, 0.8), 0.3);
+    let right = Material::Metal(Color::from(0.8, 0.6, 0.2), 1.0);
 
     // World
     let mut world = HitList::new();

@@ -7,7 +7,7 @@ use crate::{
 #[derive(Clone)]
 pub enum Material {
     Lambertian(Color),
-    Metal(Color),
+    Metal(Color, f64),
 }
 
 impl Material {
@@ -23,9 +23,10 @@ impl Material {
 
                 Some((*albedo, scattered))
             }
-            Self::Metal(albedo) => {
+            Self::Metal(albedo, fuzz) => {
                 let reflected = vec3::reflect(&r_in.direction().unit(), &record.normal);
-                let scattered = Ray::from(record.p, reflected);
+                let scattered =
+                    Ray::from(record.p, reflected + vec3::random_unit_vector().mul(*fuzz));
 
                 Some((*albedo, scattered))
             }
