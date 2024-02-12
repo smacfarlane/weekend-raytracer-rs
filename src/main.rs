@@ -71,7 +71,7 @@ fn cover_art() -> ImageBuffer<image::Rgb<u8>, Vec<u8>> {
                         Material::Lambertian(albedo)
                     }
                     _x if _x < 0.95 => {
-                        let albedo = Color::random_color(); // TODO: 0.5 -> 1
+                        let albedo = Color::random_color();
                         let fuzz = rng.gen_range(0.0..0.5);
                         Material::Metal(albedo, fuzz)
                     }

@@ -18,23 +18,7 @@ impl Interval {
         Interval { min, max }
     }
 
-    // TODO: Cleanup
-    // pub fn contains(&self, x: f64) -> bool {
-    //     self.min <= x && x <= self.max
-    // }
-
     pub fn surrounds(&self, x: f64) -> bool {
         self.min < x && x < self.max
     }
-
-    // TODO: Cleanup
-    // pub fn clamp(&self, x: f64) -> f64 {
-    //     if x < self.min {
-    //         self.min
-    //     } else if x > self.max {
-    //         self.max
-    //     } else {
-    //         x
-    //     }
-    // }
 }
