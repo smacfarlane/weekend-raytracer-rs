@@ -15,6 +15,15 @@ impl Color {
         Color::from(1.0, 1.0, 1.0)
     }
 
+    pub fn random_color() -> Color {
+        let mut rng = thread_rng();
+        Vec3([
+            rng.gen_range(0.0..1.0),
+            rng.gen_range(0.0..1.0),
+            rng.gen_range(0.0..1.0),
+        ])
+    }
+
     pub fn r(&self) -> u8 {
         (255.99 * self[0]) as u8
     }
